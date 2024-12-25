@@ -78,6 +78,18 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- External Libraries -->
+		<dependency>
+			<groupId>org.iban4j</groupId>
+			<artifactId>iban4j</artifactId>
+			<version>3.2.10-RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>2.0.16</version>
+		</dependency>
+
 
 	</dependencies>
 

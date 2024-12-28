@@ -1,6 +1,7 @@
 package com.finadem.entity;
 
 import com.finadem.enums.CurrencyEnum;
+import com.finadem.enums.TransactionSource;
 import com.finadem.enums.TransactionStatus;
 import com.finadem.enums.TransactionType;
 import jakarta.persistence.*;
@@ -20,9 +21,9 @@ public class Transaction {
     private Long transactionId;
 
     @Column(nullable = false, length = 25)
-    private String customerAccount;
+    private String iban;
 
-    @Column(nullable = false, length = 25)
+    @Column(length = 25)
     private String transactingAccount;
 
     @Column
@@ -32,16 +33,21 @@ public class Transaction {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false)
     private TransactionType type;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false)
     private TransactionStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionSource source;
 
     @Column
     private String transactionRemarks;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     @Builder.Default
     private CurrencyEnum currency = CurrencyEnum.EUR;

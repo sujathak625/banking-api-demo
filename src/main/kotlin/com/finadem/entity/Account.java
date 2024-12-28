@@ -7,8 +7,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "Account")
@@ -20,7 +18,7 @@ public class Account {
     @Id
     private Long customerId;
 
-    @Column(nullable = false, unique = true, length = 25)
+    @Column(nullable = false, unique = true)
     private String accountNumber;
 
     @Column(nullable = false, length = 100)

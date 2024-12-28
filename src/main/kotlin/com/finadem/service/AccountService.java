@@ -1,6 +1,6 @@
 package com.finadem.service;
 
-import com.finadem.dto.AccountDTO;
+import com.finadem.model.AccountData;
 import com.finadem.entity.Account;
 import com.finadem.repository.AccountRepository;
 import com.finadem.utilities.AccountUtilities;
@@ -9,13 +9,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 public interface AccountService {
-    boolean createNewAccount(AccountDTO account);
+    String createNewAccount(AccountData account);
 
     boolean updateAccountBalance(String accountNumber, BigDecimal accountBalance);
 
-    AccountDTO getAccountInformation(String accountNumber);
+    AccountData getAccountInformationByAccountNumber(String accountNumber);
+
 }
 
 @Service
@@ -32,15 +34,23 @@ class AccountServiceImpl implements AccountService {
         this.accountUtilities = accountUtilities;
     }
 
-    public boolean createNewAccount(AccountDTO account) {
-        boolean accountCreationStatus = false;
+    public String createNewAccount(AccountData account) {
+        String newAccountNumber = null;
         boolean isExists = accountRepository.findAccountInformationByAccountNumber(account.getAccountNumber()) != null;
         Account accountEntity = new Account();
         if (!isExists) {
-            accountEntity.setAccountHolderName(UNKNOWN + account.getAccountNumber());
-            accountEntity.setCustomerId(generateUniqueCustomerId());
-            accountEntity.setAccountNumber(accountUtilities.generateIBAN());
-            if(account.getTaxId() == null) {
+            if (account.getCustomerId() == null) {
+                accountEntity.setCustomerId(generateUniqueCustomerId());
+            } else {
+                accountEntity.setCustomerId(account.getCustomerId());
+            }
+            if (account.getAccountNumber() == null) {
+                accountEntity.setAccountNumber(accountUtilities.generateIBAN());
+            } else {
+                accountEntity.setAccountNumber(account.getAccountNumber());
+            }
+            accountEntity.setAccountHolderName(UNKNOWN + "-" + account.getAccountHolderName());
+            if (account.getTaxId() == null) {
                 accountEntity.setTaxId(UNKNOWN);
             } else {
                 accountEntity.setTaxId(account.getTaxId());
@@ -53,11 +63,11 @@ class AccountServiceImpl implements AccountService {
         }
         try {
             accountRepository.save(accountEntity);
-            accountCreationStatus = true;
+            newAccountNumber = accountEntity.getAccountNumber();
         } catch (Exception e) {
             logger.error("Error while creating account for account number {}", account.getAccountNumber(), e);
         }
-        return accountCreationStatus;
+        return newAccountNumber;
     }
 
     @Override
@@ -77,10 +87,9 @@ class AccountServiceImpl implements AccountService {
         }
     }
 
-
-    public AccountDTO getAccountInformation(String accountNumber) {
+    public AccountData getAccountInformationByAccountNumber(String accountNumber) {
         Account accountEntity = accountRepository.findAccountInformationByAccountNumber(accountNumber);
-        AccountDTO accountData = new AccountDTO();
+        AccountData accountData = new AccountData();
         if (accountEntity != null) {
             accountData.setCustomerId(accountEntity.getCustomerId());
             accountData.setAccountHolderName(accountEntity.getAccountHolderName());
@@ -95,6 +104,25 @@ class AccountServiceImpl implements AccountService {
             return null;
         }
         return accountData;
+    }
+
+    public AccountData getAccountInformationByCustomerId(Long customerId) {
+        Integer customerIdAsInteger = customerId.intValue();
+        Optional<Account> optionalAccount = accountRepository.findById(customerIdAsInteger);
+        if (optionalAccount.isPresent()) {
+            Account accountEntity = optionalAccount.get();
+            return AccountData.builder()
+                    .customerId(accountEntity.getCustomerId())
+                    .accountHolderName(accountEntity.getAccountHolderName())
+                    .accountNumber(accountEntity.getAccountNumber())
+                    .createdAt(accountEntity.getCreatedAt())
+                    .currentBalance(accountEntity.getCurrentBalance())
+                    .currency(accountEntity.getCurrency())
+                    .taxId(accountEntity.getTaxId())
+                    .build();
+        } else {
+            return null;
+        }
     }
 
     private Long generateUniqueCustomerId() {

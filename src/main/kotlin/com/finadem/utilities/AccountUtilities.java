@@ -39,16 +39,15 @@ public class AccountUtilities {
     }
 
     public boolean isIbanValid(String iban) {
-        boolean isValid = false;
+        boolean isValid;
         try {
-            IbanUtil.validate(iban, IbanFormat.Default);
+            IbanUtil.validate(iban);
             isValid = true;
-
         } catch (IbanFormatException |
                  InvalidCheckDigitException |
                  UnsupportedCountryException e) {
             isValid = false;
-            logger.error("Invalid IBAN {iban}", iban, e);
+            logger.error("Invalid IBAN {}", iban, e);
         }
         return isValid;
     }

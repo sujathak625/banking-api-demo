@@ -1,4 +1,4 @@
-package com.finadem.dto;
+package com.finadem.model;
 
 import com.finadem.enums.AccountStatus;
 import com.finadem.enums.CurrencyEnum;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AccountDTO {
+public class AccountData {
     private Long customerId;
     private String accountNumber;
     private String accountHolderName;

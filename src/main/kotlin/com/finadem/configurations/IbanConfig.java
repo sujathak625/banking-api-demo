@@ -1,9 +1,11 @@
 package com.finadem.configurations;
 
+import lombok.Getter;
 import org.iban4j.CountryCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+@Getter
 @Component
 public class IbanConfig {
 
@@ -12,12 +14,4 @@ public class IbanConfig {
 
     @Value("${iban.bankCode}")
     private String bankCode;
-
-    public CountryCode getCountryCode() {
-        return countryCode;
-    }
-
-    public String getBankCode() {
-        return bankCode;
-    }
 }

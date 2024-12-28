@@ -1,4 +1,4 @@
-package com.finadem.dto;
+package com.finadem.model;
 
 import com.finadem.enums.CurrencyEnum;
 import com.finadem.enums.TransactionType;
@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TransactionDTO {
+public class FundTransferRequest {
     private String transactingAccountNumber;
     private String customerAccountNumber;
     private BigDecimal amount;

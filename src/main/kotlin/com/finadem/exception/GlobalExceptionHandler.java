@@ -1,5 +1,6 @@
 package com.finadem.exception;
 
+import com.finadem.exception.exceptions.IbanNotFoundException;
 import com.finadem.exception.exceptions.InvalidDateFormatException;
 import com.finadem.exception.exceptions.StartDateAfterEndDateException;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StartDateAfterEndDateException.class)
     public ResponseEntity<String> handleStartDateAfterEndDateException(StartDateAfterEndDateException ex){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IbanNotFoundException.class)
+    public ResponseEntity<String> handleIbanNotFoundException(IbanNotFoundException ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

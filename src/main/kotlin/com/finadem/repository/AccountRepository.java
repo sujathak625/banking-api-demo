@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface AccountRepository extends JpaRepository<Account, Integer> {
-    @Query("FROM Account a WHERE a.accountNumber = :accountNumber")
+    @Query("FROM Account a WHERE a.iban = :accountNumber")
     Account findAccountInformationByAccountNumber(@Param("accountNumber") String accountNumber);
 }

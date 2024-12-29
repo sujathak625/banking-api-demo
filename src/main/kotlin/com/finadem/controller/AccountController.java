@@ -1,6 +1,7 @@
 package com.finadem.controller;
 
-import com.finadem.model.AccountData;
+import com.finadem.request.AccountDataRequest;
+import com.finadem.response.AccountDataResponse;
 import com.finadem.service.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +19,22 @@ public class AccountController {
 
     @GetMapping("/balance/{accountNumber}")
     public ResponseEntity<?> getAccountBalance(@PathVariable String accountNumber) {
-        AccountData accountData = accountService.getAccountInformationByAccountNumber(accountNumber);
-        if (accountData != null) {
-            return ResponseEntity.ok(accountData);
+        AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(accountNumber);
+        if (accountDataRequest != null) {
+            AccountDataResponse accountDataResponse = new AccountDataResponse();
+            accountDataResponse.setAccountNumber(accountNumber);
+            accountDataResponse.setCurrentBalance(accountDataRequest.getCurrentBalance());
+            accountDataResponse.setCurrency(accountDataRequest.getCurrency());
+            return ResponseEntity.ok(accountDataResponse);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account does not exist");
         }
     }
 
-    @PostMapping("/createAccount")
-    public ResponseEntity<String> createAccount(@RequestBody AccountData account) {
-        String newAccountNumber = accountService.createNewAccount(account);
+    // Only for testing purpose to test account creation works
+   @PostMapping("/createAccount")
+    public ResponseEntity<String> createAccount(@RequestBody AccountDataRequest accountDataRequest) {
+        String newAccountNumber = accountService.createNewAccount(accountDataRequest);
         if (newAccountNumber!=null) {
             return ResponseEntity.status(HttpStatus.CREATED).body("Account created successfully.");
         } else {

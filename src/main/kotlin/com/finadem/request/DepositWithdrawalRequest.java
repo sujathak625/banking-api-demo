@@ -1,4 +1,4 @@
-package com.finadem.model;
+package com.finadem.request;
 
 import com.finadem.enums.CurrencyEnum;
 import com.finadem.enums.TransactionSource;
@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import org.springframework.format.annotation.NumberFormat;
 
 @Data
 @NoArgsConstructor
@@ -30,6 +30,7 @@ public class DepositWithdrawalRequest {
 
     @NotBlank(message = "Amount cannot be blank.")
     @Positive(message = "Amount must be a positive number.")
+    @NumberFormat(style = NumberFormat.Style.CURRENCY)
     private String amount;
 
     @NotNull(message = "Currency cannot be null.")

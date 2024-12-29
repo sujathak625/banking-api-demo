@@ -1,4 +1,4 @@
-package com.finadem.model;
+package com.finadem.request;
 
 import com.finadem.enums.CurrencyEnum;
 import com.finadem.enums.TransactionType;

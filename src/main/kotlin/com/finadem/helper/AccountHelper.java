@@ -1,4 +1,4 @@
-package com.finadem.utilities;
+package com.finadem.helper;
 
 import com.finadem.configurations.IbanConfig;
 import org.iban4j.*;
@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 import java.util.Random;
 
 @Component
-public class AccountUtilities {
+public class AccountHelper {
 
-    Logger logger = LoggerFactory.getLogger(AccountUtilities.class);
+    Logger logger = LoggerFactory.getLogger(AccountHelper.class);
     IbanConfig ibanConfig;
 
-    public AccountUtilities(IbanConfig ibanConfig) {
+    public AccountHelper(IbanConfig ibanConfig) {
         this.ibanConfig = ibanConfig;
     }
 

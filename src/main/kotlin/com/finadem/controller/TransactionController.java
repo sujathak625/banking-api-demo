@@ -1,15 +1,13 @@
 package com.finadem.controller;
 
 import com.finadem.entity.Transaction;
-import com.finadem.exception.exceptions.InvalidDateFormatException;
-import com.finadem.model.DepositWithdrawalRequest;
-import com.finadem.model.FundTransferRequest;
+import com.finadem.request.DepositWithdrawalRequest;
+import com.finadem.request.FundTransferRequest;
 import com.finadem.enums.CurrencyEnum;
 import com.finadem.enums.TransactionType;
 import com.finadem.service.TransactionService;
-import com.finadem.utilities.DateUtilities;
+import com.finadem.helper.DateHelper;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.NoTransactionException;
@@ -27,26 +25,32 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @Autowired
-    private DateUtilities dateUtilities;
+    private final DateHelper dateHelper;
 
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService, DateHelper dateHelper) {
         this.transactionService = transactionService;
+        this.dateHelper = dateHelper;
     }
 
     @PostMapping("/deposit")
-    public ResponseEntity<String> deposit(@Valid @RequestBody DepositWithdrawalRequest transactionRequest) {
+    public ResponseEntity<String> depositFund(@Valid @RequestBody DepositWithdrawalRequest depositRequest) {
+        transactionService.createDepositTransaction(depositRequest.getIban(),
+                depositRequest.getCurrency(),
+                new BigDecimal(depositRequest.getAmount()),
+                depositRequest.getTransactionRemarks(),
+                depositRequest.getTransactionType(),
+                depositRequest.getTransactionSource());
         return ResponseEntity.status(HttpStatus.OK).body("Deposit Successful.");
-
     }
 
     @PostMapping("/withdrawal")
-    public ResponseEntity<String> withdrawal(@RequestBody DepositWithdrawalRequest transactionRequest) {
+    public ResponseEntity<String> withdrawal(@Valid @RequestBody DepositWithdrawalRequest withdrawalRequest) {
+        transactionService.createWithdrawalTransaction(withdrawalRequest.getIban(), withdrawalRequest.getCurrency(), BigDecimal.valueOf(Long.parseLong(withdrawalRequest.getAmount())), withdrawalRequest.getTransactionRemarks());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Withdrawal Not successful.");
     }
 
     @PostMapping("/fundTransfer")
-    public ResponseEntity<String> deposit(@RequestBody FundTransferRequest transactionRequest) {
+    public ResponseEntity<String> transferFunds(@RequestBody FundTransferRequest transactionRequest) {
         String transactingAccountNumber = transactionRequest.getTransactingAccountNumber();
         String customerAccountNumber = transactionRequest.getCustomerAccountNumber();
         BigDecimal amount = transactionRequest.getAmount();
@@ -70,14 +74,11 @@ public class TransactionController {
     }
 
     @GetMapping("/history/{iban}/{fromDate}/{toDate}")
-    public ResponseEntity<List<Transaction>> getTransactionHistoryBetween(
-            @PathVariable String iban,
-            @PathVariable String fromDate,
-            @PathVariable String toDate) {
+    public ResponseEntity<List<Transaction>> getTransactionHistoryBetween(@PathVariable String iban, @PathVariable String fromDate, @PathVariable String toDate) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        LocalDate startDate = dateUtilities.validateAndParseDate(fromDate, formatter);
-        LocalDate endDate = dateUtilities.validateAndParseDate(toDate, formatter);
-        dateUtilities.isStartDateAfterEndDate(startDate,endDate);
+        LocalDate startDate = dateHelper.validateAndParseDate(fromDate, formatter);
+        LocalDate endDate = dateHelper.validateAndParseDate(toDate, formatter);
+        dateHelper.isStartDateAfterEndDate(startDate, endDate);
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         List<Transaction> transactionsHistory = transactionService.getTransactionHistoryBetween(iban, startDateTime, endDateTime);

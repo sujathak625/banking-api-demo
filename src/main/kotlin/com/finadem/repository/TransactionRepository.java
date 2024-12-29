@@ -1,5 +1,6 @@
 package com.finadem.repository;
 
+import com.finadem.entity.Account;
 import com.finadem.entity.Transaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

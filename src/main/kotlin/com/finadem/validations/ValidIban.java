@@ -1,6 +1,6 @@
 package com.finadem.validations;
 
-import com.finadem.utilities.AccountUtilities;
+import com.finadem.helper.AccountHelper;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -23,10 +23,10 @@ public @interface ValidIban {
 
 
 class IbanValidator implements ConstraintValidator<ValidIban, String> {
-    AccountUtilities accountUtilities;
+    AccountHelper accountHelper;
 
-    public IbanValidator(AccountUtilities accountUtilities) {
-        this.accountUtilities = accountUtilities;
+    public IbanValidator(AccountHelper accountHelper) {
+        this.accountHelper = accountHelper;
     }
 
     @Override
@@ -38,6 +38,6 @@ class IbanValidator implements ConstraintValidator<ValidIban, String> {
         if (iban == null || iban.isBlank()) {
             return false;
         }
-        return accountUtilities.isIbanValid(iban);
+        return accountHelper.isIbanValid(iban);
     }
 }

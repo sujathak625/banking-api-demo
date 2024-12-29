@@ -1,4 +1,4 @@
-package com.finadem.utilities;
+package com.finadem.helper;
 
 import com.finadem.exception.exceptions.InvalidDateFormatException;
 import com.finadem.exception.exceptions.StartDateAfterEndDateException;
@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 @Component
-public class DateUtilities {
+public class DateHelper {
      public LocalDate validateAndParseDate(String date, DateTimeFormatter formatter) throws InvalidDateFormatException {
         try {
             return LocalDate.parse(date, formatter);

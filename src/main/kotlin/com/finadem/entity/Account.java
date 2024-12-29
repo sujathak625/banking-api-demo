@@ -19,7 +19,7 @@ public class Account {
     private Long customerId;
 
     @Column(nullable = false, unique = true)
-    private String accountNumber;
+    private String iban;
 
     @Column(nullable = false, length = 100)
     private String accountHolderName;

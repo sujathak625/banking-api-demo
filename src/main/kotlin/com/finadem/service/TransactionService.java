@@ -1,32 +1,36 @@
 package com.finadem.service;
 
 import com.finadem.enums.*;
+import com.finadem.exception.exceptions.InsufficientBalanceException;
 import com.finadem.exception.exceptions.IbanNotFoundException;
+import com.finadem.exception.exceptions.InvalidTransactionType;
+import com.finadem.exception.exceptions.TransferToSelfException;
 import com.finadem.request.AccountDataRequest;
 import com.finadem.entity.Transaction;
 import com.finadem.repository.TransactionRepository;
-import com.finadem.helper.AccountHelper;
+import com.finadem.request.DepositWithdrawalRequest;
+import com.finadem.request.FundTransferRequest;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.NoTransactionException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TransactionService {
-    String createNewTransaction(String transactingAccountNumber, String customerAccountNumber, CurrencyEnum currencyType,
-                                BigDecimal amount, TransactionType transactionType, String transactionRemarks);
+    void createFundTransferTransaction(FundTransferRequest fundTransferRequest);
 
-    String createDepositTransaction(String customerIban, CurrencyEnum currencyType,
-                                    BigDecimal amount, String transactionRemarks,
-                                    TransactionType transactionType,
-                                    TransactionSource transactionSource);
+    void createDepositTransaction(String customerIban, CurrencyEnum currencyType,
+                                  BigDecimal amount, String transactionRemarks,
+                                  TransactionType transactionType,
+                                  TransactionSource transactionSource);
 
-    boolean createWithdrawalTransaction(String customerIban, CurrencyEnum currencyType,BigDecimal amount,String transactionRemarks);
+    void createWithdrawalTransaction(DepositWithdrawalRequest withdrawalRequest);
 
     List<Transaction> getLastNTransactionHistory(String iban, int lastNTransactions);
 
@@ -36,113 +40,81 @@ public interface TransactionService {
 @Service
 class TransactionServiceImpl implements TransactionService {
     Logger logger = LoggerFactory.getLogger(TransactionService.class);
-    public AccountService accountService;
-    public TransactionRepository transactionRepository;
-    public AccountHelper accountHelper;
+    private final AccountService accountService;
+    private final CurrencyConverterService currencyConverterService;
+    private final TransactionRepository transactionRepository;
 
-    public TransactionServiceImpl(AccountService accountService, TransactionRepository transactionRepository,
-                                  AccountHelper accountHelper) {
+    public TransactionServiceImpl(AccountService accountService,
+                                  CurrencyConverterService currencyConverterService,
+                                  TransactionRepository transactionRepository
+    ) {
         this.accountService = accountService;
+        this.currencyConverterService = currencyConverterService;
         this.transactionRepository = transactionRepository;
-        this.accountHelper = accountHelper;
     }
 
     @Transactional
-    public String createNewTransaction(String transactingAccountNumber, String customerAccountNumber, CurrencyEnum currencyType,
-                                       BigDecimal amount, TransactionType transactionType, String transactionRemarks) {
-        String isTransactionSuccessOrFailedMessage;
-        BigDecimal currentBalance;
-        Transaction transactionEntity;
-        try {
-            if (transactionType == TransactionType.DEPOSIT) {
-                // information of receiving account is verified. Whether receiver's account
-                // is actual bank's customer's account
-                AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(customerAccountNumber);
-                String newAccountNumber = null;
-                if (accountDataRequest == null) {
-                    accountDataRequest = new AccountDataRequest();
-                    // to avoid duplicate creation of new account for transfer coming from same unknown account number
-                    //  accountData.setCustomerId(Long.parseLong(customerAccountNumber));
-                    accountDataRequest.setCurrency(currencyType);
-                    accountDataRequest.setCurrentBalance(amount);
-                    if (accountHelper.isIbanValid(customerAccountNumber)) {
-                        accountDataRequest.setAccountNumber(customerAccountNumber);
-                        accountDataRequest.setAccountHolderName(customerAccountNumber);
-                    }
-                    accountDataRequest.setStatus(AccountStatus.ACTIVE_KYC_NOT_COMPLETED);
-                    newAccountNumber = accountService.createNewAccount(accountDataRequest);
-                }
-                if (newAccountNumber != null) { // block executes only when transfer is done to an unknown account number
-                    // new account is opened with that unknown account number
-                    transactionEntity=
-                            Transaction.builder().transactingAccount(customerAccountNumber)
-                                    .iban(newAccountNumber)
-                                    .currency(currencyType)
-                                    .amount(amount)
-                                    .type(transactionType)
-                                    .transactionRemarks(transactionRemarks).build();
-                } else {
-                    transactionEntity=
-                            Transaction.builder().transactingAccount(customerAccountNumber)
-                                    .iban(customerAccountNumber)
-                                    .currency(currencyType)
-                                    .amount(amount)
-                                    .type(transactionType)
-                                    .transactionRemarks(transactionRemarks).build();
-                }
-                currentBalance = accountDataRequest.getCurrentBalance() != null ? accountDataRequest.getCurrentBalance() : BigDecimal.ZERO;
-                transactionRepository.save(transactionEntity);
-                accountService.updateAccountBalance(customerAccountNumber, currentBalance.add(amount));
-                isTransactionSuccessOrFailedMessage = "Deposit Successful";
-            } else {
-                // Here sender account number should be the bank's customer account.
-                AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(transactingAccountNumber);
-                if (accountDataRequest == null) {
-                    isTransactionSuccessOrFailedMessage = "Account does not exist";
-                    return isTransactionSuccessOrFailedMessage;
-                } else {
-                    currentBalance = accountDataRequest.getCurrentBalance();
-                    if (currentBalance.compareTo(BigDecimal.ZERO) > 0 && currentBalance.compareTo(amount) >= 0) {
-                     transactionEntity=
-                        Transaction.builder().transactingAccount(customerAccountNumber)
-                                .iban(customerAccountNumber)
-                                .currency(currencyType)
-                                .amount(amount)
-                                .type(transactionType)
-                                .transactionRemarks(transactionRemarks).build();
-                        transactionRepository.save(transactionEntity);
-                        accountService.updateAccountBalance(transactingAccountNumber, currentBalance.subtract(amount));
-                        isTransactionSuccessOrFailedMessage = "Withdrawal Successful";
-                    } else {
-                        isTransactionSuccessOrFailedMessage = "Insufficient Funds";
-                    }
-                }
-            }
-        } catch (
-                Exception e) {
-            logger.error("Error while creating transaction for account number {}", customerAccountNumber, e);
-            isTransactionSuccessOrFailedMessage = "Transaction Failed";
+    public void createFundTransferTransaction(FundTransferRequest fundTransferRequest) {
+        AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(fundTransferRequest.getCustomerAccountNumber());
+        if (fundTransferRequest.getTransactingAccountNumber().equals(fundTransferRequest.getCustomerAccountNumber())) {
+            throw new TransferToSelfException("Sending and receiving account numbers cannot be the same.");
         }
-        return isTransactionSuccessOrFailedMessage;
+        if (fundTransferRequest.getTransactionType().equals(TransactionType.DEPOSIT)
+                || fundTransferRequest.getTransactionType().equals(TransactionType.WITHDRAWAL)) {
+            throw new InvalidTransactionType("Please specify whether the transaction type is " + TransactionType.CREDIT_TRANSFER + " or " + TransactionType.DEBIT_TRANSFER + ". Other types not recognized");
+        }
+        BigDecimal transferRequestAmount = new BigDecimal(fundTransferRequest.getAmount());
+        if (!fundTransferRequest.getCurrencyType().equals(CurrencyEnum.EUR)) {
+            BigDecimal currentRate = currencyConverterService.getExchangeRate(CurrencyEnum.EUR.toString(), fundTransferRequest.getCurrencyType().toString());
+            transferRequestAmount = transferRequestAmount.multiply(currentRate);
+        }
+        if (TransactionType.CREDIT_TRANSFER.equals(fundTransferRequest.getTransactionType())) {
+            Transaction transactionEntity = Transaction.builder()
+                    .iban(fundTransferRequest.getCustomerAccountNumber())
+                    .amount(transferRequestAmount)
+                    .type(TransactionType.CREDIT_TRANSFER)
+                    .source(TransactionSource.FUND_TRANSFER)
+                    .status(TransactionStatus.SUCCESS)
+                    .currency(CurrencyEnum.EUR)
+                    .transactionRemarks(fundTransferRequest.getTransactionRemarks())
+                    .build();
+            transactionRepository.save(transactionEntity);
+            accountService.updateAccountBalance(fundTransferRequest.getCustomerAccountNumber(), accountDataRequest.getCurrentBalance().add(transferRequestAmount));
+        } else if (TransactionType.DEBIT_TRANSFER.equals(fundTransferRequest.getTransactionType())) {
+            BigDecimal prospectiveAccountBalance = accountDataRequest.getCurrentBalance().subtract(transferRequestAmount);
+            if (prospectiveAccountBalance.compareTo(BigDecimal.ZERO) < 0) {
+                throw new InsufficientBalanceException("Insufficient balance");
+            }
+            Transaction transactionEntity = Transaction.builder()
+                    .iban(fundTransferRequest.getCustomerAccountNumber())
+                    .amount(transferRequestAmount)
+                    .type(TransactionType.DEBIT_TRANSFER)
+                    .source(TransactionSource.FUND_TRANSFER)
+                    .currency(CurrencyEnum.EUR)
+                    .transactionRemarks(fundTransferRequest.getTransactionRemarks())
+                    .status(TransactionStatus.SUCCESS)
+                    .build();
+            transactionRepository.save(transactionEntity);
+            accountService.updateAccountBalance(fundTransferRequest.getCustomerAccountNumber(), prospectiveAccountBalance);
+        }
     }
 
     @Override
     @Transactional
-    public String createDepositTransaction(String customerIban, CurrencyEnum currencyType, BigDecimal amount, String transactionRemarks,
-                                           TransactionType transactionType, TransactionSource transactionSource) {
+    public void createDepositTransaction(String customerIban, CurrencyEnum currencyType, BigDecimal amount, String transactionRemarks,
+                                         TransactionType transactionType, TransactionSource transactionSource) {
         AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(customerIban);
         if (accountDataRequest != null) {
             Transaction transactionEntity = Transaction.builder()
                     .iban(customerIban)
                     .amount(amount)
                     .type(TransactionType.DEPOSIT)
-                    .source(TransactionSource.ATM)
+                    .source(transactionSource)
                     .status(TransactionStatus.SUCCESS)
                     .currency(currencyType).transactionRemarks(transactionRemarks)
                     .build();
             transactionRepository.save(transactionEntity);
             accountService.updateAccountBalance(customerIban, accountDataRequest.getCurrentBalance().add(amount));
-            return "Deposit Successful";
         } else {
             throw new IbanNotFoundException("Iban does not exist");
         }
@@ -150,34 +122,47 @@ class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public boolean createWithdrawalTransaction(String customerIban, CurrencyEnum currencyType, BigDecimal amount, String transactionRemarks) {
+    public void createWithdrawalTransaction(DepositWithdrawalRequest withdrawalRequest) {
+        String customerIban = withdrawalRequest.getIban();
+        BigDecimal withdrawalAmount = new BigDecimal(withdrawalRequest.getAmount());
         AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(customerIban);
-        boolean isWithdrawalSuccessful;
         if (accountDataRequest != null) {
+            BigDecimal prospectiveAccountBalance = accountDataRequest.getCurrentBalance().subtract(withdrawalAmount);
+            if (prospectiveAccountBalance.compareTo(BigDecimal.ZERO) < 0) {
+                throw new InsufficientBalanceException("Insufficient balance");
+            }
             Transaction transactionEntity = Transaction.builder()
-                    .iban(customerIban)
-                    .amount(amount)
-                    .type(TransactionType.WITHDRAWAL)
-                    .currency(currencyType).transactionRemarks(transactionRemarks)
+                    .iban(withdrawalRequest.getIban())
+                    .amount(withdrawalAmount)
+                    .type(withdrawalRequest.getTransactionType())
+                    .source(withdrawalRequest.getTransactionSource())
+                    .currency(withdrawalRequest.getCurrency())
+                    .transactionRemarks(withdrawalRequest.getTransactionRemarks())
+                    .status(TransactionStatus.SUCCESS)
                     .build();
             transactionRepository.save(transactionEntity);
-            accountService.updateAccountBalance(customerIban, accountDataRequest.getCurrentBalance().subtract(amount));
-            isWithdrawalSuccessful = true;
+            accountService.updateAccountBalance(customerIban, prospectiveAccountBalance);
         } else {
-            isWithdrawalSuccessful = false;
             throw new IbanNotFoundException("Account with IBAN " + customerIban + " not found. To open a new account please contact the banking team.");
         }
-        return isWithdrawalSuccessful;
     }
 
     @Override
     public List<Transaction> getLastNTransactionHistory(String iban, int numberOfTransactions) {
         Pageable pageable = PageRequest.of(0, numberOfTransactions);
-        return transactionRepository.getTransactionByAccountNumber(iban, pageable).getContent();
+        List<Transaction> transactionHistory = transactionRepository.getTransactionByAccountNumber(iban, pageable).getContent();
+        if (transactionHistory.isEmpty()) {
+            throw new NoTransactionException("No transactions found for IBAN: " + iban);
+        }
+        return transactionHistory;
     }
 
     @Override
     public List<Transaction> getTransactionHistoryBetween(String iban, LocalDateTime startDate, LocalDateTime endDate) {
-        return transactionRepository.getTransactionHistoryBetween(iban, startDate, endDate);
+        List<Transaction> transactionsHistory = transactionRepository.getTransactionHistoryBetween(iban, startDate, endDate);
+        if (transactionsHistory == null || transactionsHistory.isEmpty()) {
+            throw new NoTransactionException("No transactions found between dates: " + startDate + " and " + endDate);
+        }
+        return transactionsHistory;
     }
 }

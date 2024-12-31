@@ -1,4 +1,4 @@
-package com.finadem.validations;
+package com.finadem.validation.validationTypes;
 
 import com.finadem.enums.TransactionSource;
 import jakarta.validation.Constraint;

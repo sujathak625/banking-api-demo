@@ -1,8 +1,6 @@
 package com.finadem.exception;
 
-import com.finadem.exception.exceptions.IbanNotFoundException;
-import com.finadem.exception.exceptions.InvalidDateFormatException;
-import com.finadem.exception.exceptions.StartDateAfterEndDateException;
+import com.finadem.exception.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.NoTransactionException;
@@ -17,11 +15,7 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(NoTransactionException.class)
-    public ResponseEntity<String> handleNoTransactionsException(NoTransactionException ex){
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
+   // Validation Exceptions
     @ExceptionHandler(InvalidDateFormatException.class)
     public ResponseEntity<String> handleInvalidDateFormatException(InvalidDateFormatException ex){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
@@ -32,9 +26,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
-    @ExceptionHandler(IbanNotFoundException.class)
-    public ResponseEntity<String> handleIbanNotFoundException(IbanNotFoundException ex){
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<String> handleAccountBalanceLessThanZeroException(InsufficientBalanceException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidIbanException.class)
+    public ResponseEntity<String> handleInvalidIbanException(InvalidIbanException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidTransactionType.class)
+    public ResponseEntity<String> handleInvalidTransactionType(InvalidTransactionType type){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(type.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -44,5 +48,16 @@ public class GlobalExceptionHandler {
             errors.put(error.getField(), error.getDefaultMessage());
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    // Transaction Execution Exceptions
+    @ExceptionHandler(IbanNotFoundException.class)
+    public ResponseEntity<String> handleIbanNotFoundException(IbanNotFoundException ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(NoTransactionException.class)
+    public ResponseEntity<String> handleNoTransactionsException(NoTransactionException ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }

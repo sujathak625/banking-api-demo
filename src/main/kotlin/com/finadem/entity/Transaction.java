@@ -26,9 +26,6 @@ public class Transaction {
     @Column(length = 25)
     private String transactingAccount;
 
-    @Column
-    private String bic;
-
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
@@ -38,7 +35,7 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TransactionStatus status;
+    private TransactionStatus status=TransactionStatus.SUCCESS;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -43,33 +43,21 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.OK).body("Deposit Successful.");
     }
 
-    @PostMapping("/withdrawal")
+    @PostMapping("/withdraw")
     public ResponseEntity<String> withdrawal(@Valid @RequestBody DepositWithdrawalRequest withdrawalRequest) {
-        transactionService.createWithdrawalTransaction(withdrawalRequest.getIban(), withdrawalRequest.getCurrency(), BigDecimal.valueOf(Long.parseLong(withdrawalRequest.getAmount())), withdrawalRequest.getTransactionRemarks());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Withdrawal Not successful.");
+        transactionService.createWithdrawalTransaction(withdrawalRequest);
+        return ResponseEntity.status(HttpStatus.OK).body("Withdrawal successful.");
     }
 
-    @PostMapping("/fundTransfer")
-    public ResponseEntity<String> transferFunds(@RequestBody FundTransferRequest transactionRequest) {
-        String transactingAccountNumber = transactionRequest.getTransactingAccountNumber();
-        String customerAccountNumber = transactionRequest.getCustomerAccountNumber();
-        BigDecimal amount = transactionRequest.getAmount();
-        CurrencyEnum currencyType = transactionRequest.getCurrencyType();
-        TransactionType transactionType = transactionRequest.getTransactionType();
-        String transactionRemarks = transactionRequest.getTransactionRemarks();
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transaction amount must be greater than zero.");
-        }
-        String transactionStatus = transactionService.createNewTransaction(transactingAccountNumber, customerAccountNumber, currencyType, amount, transactionType, transactionRemarks);
-        return ResponseEntity.status(HttpStatus.OK).body("Deposit successful.");
+    @PostMapping("/transfer")
+    public ResponseEntity<String> transferFunds(@Valid @RequestBody FundTransferRequest fundTransferRequest) {
+        transactionService.createFundTransferTransaction(fundTransferRequest);
+        return ResponseEntity.status(HttpStatus.OK).body("Fund Transfer successful.");
     }
 
     @GetMapping("/history/{iban}/{n}")
     public ResponseEntity<List<Transaction>> getLastNTransactions(@PathVariable String iban, @PathVariable int n) {
         List<Transaction> transactionHistory = transactionService.getLastNTransactionHistory(iban, n);
-        if (transactionHistory != null && transactionHistory.isEmpty()) {
-            throw new NoTransactionException("No transactions found for IBAN: " + iban);
-        }
         return ResponseEntity.status(HttpStatus.OK).body(transactionHistory);
     }
 
@@ -82,9 +70,6 @@ public class TransactionController {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         List<Transaction> transactionsHistory = transactionService.getTransactionHistoryBetween(iban, startDateTime, endDateTime);
-        if (transactionsHistory == null || transactionsHistory.isEmpty()) {
-            throw new NoTransactionException("No transactions found between dates: " + fromDate + " and " + toDate);
-        }
-        return ResponseEntity.ok(transactionsHistory);
+        return ResponseEntity.status(HttpStatus.OK).body(transactionsHistory);
     }
 }

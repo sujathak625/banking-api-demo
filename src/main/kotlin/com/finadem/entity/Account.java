@@ -21,6 +21,9 @@ public class Account {
     @Column(nullable = false, unique = true)
     private String iban;
 
+    @Column
+    private String bic;
+
     @Column(nullable = false, length = 100)
     private String accountHolderName;
 

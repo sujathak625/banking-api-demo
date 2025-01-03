@@ -50,6 +50,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
+
+    @ExceptionHandler(TransferToSelfException.class)
+    public ResponseEntity<String> handleTransferToSelfException(TransferToSelfException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
     // Transaction Execution Exceptions
     @ExceptionHandler(IbanNotFoundException.class)
     public ResponseEntity<String> handleIbanNotFoundException(IbanNotFoundException ex){
@@ -59,5 +64,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoTransactionException.class)
     public ResponseEntity<String> handleNoTransactionsException(NoTransactionException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(AccountCreationFailedException.class)
+    public ResponseEntity<String> handleAccountCreationFailedException(AccountCreationFailedException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

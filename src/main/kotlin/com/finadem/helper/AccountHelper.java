@@ -51,4 +51,13 @@ public class AccountHelper {
         }
         return isValid;
     }
+
+    public String getBic() {
+        return ibanConfig.getBic();
+    }
+
+    public static void main(String[] args) {
+        AccountHelper accountHelper = new AccountHelper(new IbanConfig());
+        System.out.println(accountHelper.generateIBAN());
+    }
 }

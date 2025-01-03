@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AcceptedCurrency {
 
-    String message() default "Invalid currency.";
+    String message() default "Only EUR and USD currency are accepted";
 
     Class<?>[] groups() default {};
 

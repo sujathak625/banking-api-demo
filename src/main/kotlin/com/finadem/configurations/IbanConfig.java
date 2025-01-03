@@ -14,4 +14,7 @@ public class IbanConfig {
 
     @Value("${iban.bankCode}")
     private String bankCode;
+
+    @Value("${iban.bic}")
+    private String bic;
 }

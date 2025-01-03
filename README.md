@@ -73,7 +73,7 @@ This data is pre-loaded during the start of the service for testing purposes.
 ## Enums:
 The following enums are pre-configured to maintain consistency across transactions. This ensures that any consumer of this API will have to comply with the transaction status, transaction source, transaction type, and currency code, avoiding inconsistencies.
 
-- **AccountStatus:** An account can only be in one of these statuses - `ACTIVE`, `INACTIVE`, and `CLOSED`.
+- **AccountStatus:** An account can only be in one of these statuses - `ACTIVE`, `INACTIVE`,`SUSPENDED`,`ACTIVE_KYC_NOT_COMPLETED` and `CLOSED`.
 - **CurrencyEnum:** As of now, only `EUR` is supported. If the transaction currency is other than EUR, the latest exchange rate will be retrieved and the amount will be converted to EUR.
 - **TransactionType:** `DEPOSIT`, `WITHDRAWAL`, `CREDIT_TRANSFER`, `DEBIT_TRANSFER`.
 - **TransactionSource:** `BANK_COUNTER`, `ATM`, `FUND_TRANSFER`.
@@ -126,9 +126,18 @@ The following enums are pre-configured to maintain consistency across transactio
     "transactingAccountBIC": "BUKBGB22",
     "customerAccountNumber": "DE89370400440532013000",
     "amount": "1000",
-    "currencyType": "GBP",
-    "transactionType": "CREDIT_TRANSFER",
-    "transactionRemarks": ""
+    "currencyType": "EUR",
+    "transactionType": "CREDIT_TRANSFER"
+  }
+  ```
+    ```json
+  {
+    "transactingAccountNumber": "GB29NWBK60161331926819",
+    "transactingAccountBIC": "BUKBGB22",
+    "customerAccountNumber": "DE89370400440532013000",
+    "amount": "1000",
+    "currencyType": "EUR",
+    "transactionType": "DEBIT_TRANSFER"
   }
   ```
 

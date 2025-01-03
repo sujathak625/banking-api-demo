@@ -1,10 +1,7 @@
 package com.finadem.service;
 
 import com.finadem.enums.*;
-import com.finadem.exception.exceptions.InsufficientBalanceException;
-import com.finadem.exception.exceptions.IbanNotFoundException;
-import com.finadem.exception.exceptions.InvalidTransactionType;
-import com.finadem.exception.exceptions.TransferToSelfException;
+import com.finadem.exception.exceptions.*;
 import com.finadem.request.AccountDataRequest;
 import com.finadem.entity.Transaction;
 import com.finadem.repository.TransactionRepository;
@@ -55,7 +52,6 @@ class TransactionServiceImpl implements TransactionService {
 
     @Transactional
     public void createFundTransferTransaction(FundTransferRequest fundTransferRequest) {
-        AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(fundTransferRequest.getCustomerAccountNumber());
         if (fundTransferRequest.getTransactingAccountNumber().equals(fundTransferRequest.getCustomerAccountNumber())) {
             throw new TransferToSelfException("Sending and receiving account numbers cannot be the same.");
         }
@@ -69,33 +65,78 @@ class TransactionServiceImpl implements TransactionService {
             transferRequestAmount = transferRequestAmount.multiply(currentRate);
         }
         if (TransactionType.CREDIT_TRANSFER.equals(fundTransferRequest.getTransactionType())) {
+            AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(fundTransferRequest.getCustomerAccountNumber());
             Transaction transactionEntity = Transaction.builder()
                     .iban(fundTransferRequest.getCustomerAccountNumber())
+                    .transactingAccount(fundTransferRequest.getTransactingAccountNumber())
                     .amount(transferRequestAmount)
                     .type(TransactionType.CREDIT_TRANSFER)
-                    .source(TransactionSource.FUND_TRANSFER)
+                    .source(TransactionSource.ONLINE_FUND_TRANSFER)
                     .status(TransactionStatus.SUCCESS)
                     .currency(CurrencyEnum.EUR)
-                    .transactionRemarks(fundTransferRequest.getTransactionRemarks())
+                    .transactionRemarks("Fund transfer from "+fundTransferRequest.getTransactingAccountNumber())
                     .build();
             transactionRepository.save(transactionEntity);
             accountService.updateAccountBalance(fundTransferRequest.getCustomerAccountNumber(), accountDataRequest.getCurrentBalance().add(transferRequestAmount));
+
+            boolean isSenderBankCustomer = accountService.getAccountInformationByAccountNumber(fundTransferRequest.getTransactingAccountNumber()) != null;
+            if(isSenderBankCustomer) {
+                AccountDataRequest receiverAccount = accountService.getAccountInformationByAccountNumber(fundTransferRequest.getTransactingAccountNumber());
+                BigDecimal currentAccountBalance = receiverAccount.getCurrentBalance();
+                BigDecimal newAccountBalance = currentAccountBalance.subtract(transferRequestAmount);
+                accountService.updateAccountBalance(fundTransferRequest.getTransactingAccountNumber(),newAccountBalance);
+                Transaction recipientTransaction = Transaction.builder()
+                        .iban(fundTransferRequest.getTransactingAccountNumber())
+                        .transactingAccount(fundTransferRequest.getCustomerAccountNumber())
+                        .amount(transferRequestAmount)
+                        .type(TransactionType.DEBIT_TRANSFER)
+                        .source(TransactionSource.ONLINE_FUND_TRANSFER)
+                        .currency(CurrencyEnum.EUR)
+                        .transactionRemarks("Online fund transfer to account " + fundTransferRequest.getCustomerAccountNumber())
+                        .status(TransactionStatus.SUCCESS)
+                        .build();
+                transactionRepository.save(recipientTransaction);
+            }
         } else if (TransactionType.DEBIT_TRANSFER.equals(fundTransferRequest.getTransactionType())) {
+            AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(fundTransferRequest.getCustomerAccountNumber());
+            // Checking whether the customer initiating fund transfer has sufficient balance
             BigDecimal prospectiveAccountBalance = accountDataRequest.getCurrentBalance().subtract(transferRequestAmount);
             if (prospectiveAccountBalance.compareTo(BigDecimal.ZERO) < 0) {
                 throw new InsufficientBalanceException("Insufficient balance");
             }
             Transaction transactionEntity = Transaction.builder()
                     .iban(fundTransferRequest.getCustomerAccountNumber())
+                    .transactingAccount(fundTransferRequest.getTransactingAccountNumber())
                     .amount(transferRequestAmount)
                     .type(TransactionType.DEBIT_TRANSFER)
-                    .source(TransactionSource.FUND_TRANSFER)
+                    .source(TransactionSource.ONLINE_FUND_TRANSFER)
                     .currency(CurrencyEnum.EUR)
-                    .transactionRemarks(fundTransferRequest.getTransactionRemarks())
+                    .transactionRemarks("Fund transfer to account "+ fundTransferRequest.getTransactingAccountNumber())
                     .status(TransactionStatus.SUCCESS)
                     .build();
             transactionRepository.save(transactionEntity);
+            // Updating the customer's account balance
             accountService.updateAccountBalance(fundTransferRequest.getCustomerAccountNumber(), prospectiveAccountBalance);
+
+            // Now checking if the recipient account is the customer of the bank
+            boolean isSenderBankCustomer = accountService.getAccountInformationByAccountNumber(fundTransferRequest.getTransactingAccountNumber()) != null;
+            if(isSenderBankCustomer) {
+                AccountDataRequest receiverAccount = accountService.getAccountInformationByAccountNumber(fundTransferRequest.getTransactingAccountNumber());
+                BigDecimal currentAccountBalance = receiverAccount.getCurrentBalance();
+                BigDecimal newAccountBalance = currentAccountBalance.add(transferRequestAmount);
+                accountService.updateAccountBalance(fundTransferRequest.getTransactingAccountNumber(),newAccountBalance);
+                Transaction recipientTransaction = Transaction.builder()
+                        .iban(fundTransferRequest.getTransactingAccountNumber())
+                        .transactingAccount(fundTransferRequest.getCustomerAccountNumber())
+                        .amount(transferRequestAmount)
+                        .type(TransactionType.CREDIT_TRANSFER)
+                        .source(TransactionSource.ONLINE_FUND_TRANSFER)
+                        .currency(CurrencyEnum.EUR)
+                        .transactionRemarks("Online fund transfer from account " + fundTransferRequest.getCustomerAccountNumber())
+                        .status(TransactionStatus.SUCCESS)
+                        .build();
+                transactionRepository.save(recipientTransaction);
+            }
         }
     }
 
@@ -107,6 +148,7 @@ class TransactionServiceImpl implements TransactionService {
         if (accountDataRequest != null) {
             Transaction transactionEntity = Transaction.builder()
                     .iban(customerIban)
+                    .transactingAccount(customerIban)
                     .amount(amount)
                     .type(TransactionType.DEPOSIT)
                     .source(transactionSource)
@@ -116,7 +158,26 @@ class TransactionServiceImpl implements TransactionService {
             transactionRepository.save(transactionEntity);
             accountService.updateAccountBalance(customerIban, accountDataRequest.getCurrentBalance().add(amount));
         } else {
-            throw new IbanNotFoundException("Iban does not exist");
+            accountDataRequest = AccountDataRequest.builder()
+                    .iban(customerIban)
+                    .accountHolderName(customerIban)
+                    .currency(CurrencyEnum.EUR)
+                    .status(AccountStatus.ACTIVE_KYC_NOT_COMPLETED)
+                    .currentBalance(amount)
+                    .build();
+            accountService.createNewAccount(accountDataRequest);
+
+            Transaction transactionEntity = Transaction.builder()
+                    .iban(customerIban)
+                    .transactingAccount(customerIban)
+                    .amount(amount)
+                    .type(TransactionType.DEPOSIT)
+                    .source(transactionSource)
+                    .status(TransactionStatus.SUCCESS)
+                    .currency(currencyType).transactionRemarks(transactionRemarks)
+                    .build();
+            transactionRepository.save(transactionEntity);
+
         }
     }
 

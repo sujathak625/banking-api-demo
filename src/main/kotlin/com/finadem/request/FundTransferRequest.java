@@ -14,8 +14,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.NumberFormat;
 
-import java.math.BigDecimal;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,12 +39,10 @@ public class FundTransferRequest {
     private String amount;
 
     @NotNull(message = "Currency cannot be null.")
-    @AcceptedCurrency
+    @AcceptedCurrency(message = "Only EUR and USD currency are accepted")
     private CurrencyEnum currencyType;
 
     @NotNull(message = "Transaction Type should not be null")
     @ValidTransactionType
     private TransactionType transactionType;
-
-    private String transactionRemarks;
 }

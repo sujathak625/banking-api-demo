@@ -3,7 +3,7 @@ package com.finadem.enums;
 public enum TransactionSource {
     BANK_COUNTER,
     ATM,
-    FUND_TRANSFER;
+    ONLINE_FUND_TRANSFER;
 
     public static boolean isValid(TransactionSource source) {
         for (TransactionSource transactionSource : values()) {

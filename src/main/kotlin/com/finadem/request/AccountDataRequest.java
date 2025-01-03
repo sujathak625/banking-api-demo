@@ -2,19 +2,18 @@ package com.finadem.request;
 
 import com.finadem.enums.AccountStatus;
 import com.finadem.enums.CurrencyEnum;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import java.math.BigDecimal;
 
+@Getter
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class AccountDataRequest {
     private Long customerId;
-    private String accountNumber;
+    private String iban;
     private String accountHolderName;
     private String taxId;
     private CurrencyEnum currency;

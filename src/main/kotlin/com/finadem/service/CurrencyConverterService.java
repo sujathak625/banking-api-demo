@@ -24,7 +24,7 @@ public class CurrencyConverterService {
     public BigDecimal getExchangeRate(String baseCurrency, String toCurrency) {
         String finalUrl = String.format("%s?apikey=%s&base_currency=%s&currencies=%s", apiUrl, apiKey, baseCurrency, toCurrency);
 
-        Map<String, Object> response = restTemplate.getForObject(finalUrl, Map.class);
+        Map response = restTemplate.getForObject(finalUrl, Map.class);
 
         if (response == null || !response.containsKey("data")) {
             throw new IllegalArgumentException("Invalid response from currency API");

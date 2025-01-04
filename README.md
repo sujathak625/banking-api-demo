@@ -6,6 +6,12 @@ The Banking API provides a comprehensive set of endpoints for managing accounts,
 
 **Version:** 1.0.0
 
+Following are used to implement this API
+
+- **Maven Version:** 3.9.9
+- **Java Version:** 21
+- **Spring:** 3.4.1
+
 ## How To Build and Run:
 
 Currently, there is no specific deployment feature configured for this project. A simple **jar** build and running in a local environment is possible.
@@ -18,14 +24,9 @@ Currently, there is no specific deployment feature configured for this project. 
 
 **mvn clean package**
 
-- **Maven Version:** 3.9.9
-- **Java Version:** 21
-- **Spring:** 3.4.1
-
 3. Once the jar is built, you can run it using the following command:
 
 **java -jar markant-demo-1.0.0.jar**
-
 
 **Note:** The project uses an embedded Tomcat server, so no external Tomcat installation is required.
 
@@ -73,9 +74,9 @@ This data is pre-loaded during the start of the service for testing purposes.
 ## Enums:
 The following enums are pre-configured to maintain consistency across transactions. This ensures that any consumer of this API will have to comply with the transaction status, transaction source, transaction type, and currency code, avoiding inconsistencies.
 
-- **AccountStatus:** An account can only be in one of these statuses - `ACTIVE`, `INACTIVE`,`SUSPENDED`,`ACTIVE_KYC_NOT_COMPLETED` and `CLOSED`.
-- **CurrencyEnum:** As of now, only `EUR` is supported. If the transaction currency is other than EUR, the latest exchange rate will be retrieved and the amount will be converted to EUR.
-- **TransactionType:** `DEPOSIT`, `WITHDRAWAL`, `CREDIT_TRANSFER`, `DEBIT_TRANSFER`.
+- **AccountStatus:** An account can only be in one of these statuses - `ACTIVE`, `INACTIVE`,`SUSPENDED`,`FLAGGED`,`ACTIVE_KYC_NOT_COMPLETED` and `CLOSED`.
+- **CurrencyEnum:** As of now, only `EUR` and `USD` are accepted currencies for input request. If the transaction currency is other than EUR, the latest exchange rate will be retrieved and the amount will be converted to EUR. Even USD will be converted to EUR.
+- **TransactionType:** `DEPOSIT`, `WITHDRAWAL`, `CREDIT`, `DEBIT`.
 - **TransactionSource:** `BANK_COUNTER`, `ATM`, `FUND_TRANSFER`.
 - **TransactionStatus:** `SUCCESS`, `FAILED`.
 
@@ -127,7 +128,7 @@ The following enums are pre-configured to maintain consistency across transactio
     "customerAccountNumber": "DE89370400440532013000",
     "amount": "1000",
     "currencyType": "EUR",
-    "transactionType": "CREDIT_TRANSFER"
+    "transactionType": "CREDIT"
   }
   ```
     ```json
@@ -137,7 +138,7 @@ The following enums are pre-configured to maintain consistency across transactio
     "customerAccountNumber": "DE89370400440532013000",
     "amount": "1000",
     "currencyType": "EUR",
-    "transactionType": "DEBIT_TRANSFER"
+    "transactionType": "DEBIT"
   }
   ```
 

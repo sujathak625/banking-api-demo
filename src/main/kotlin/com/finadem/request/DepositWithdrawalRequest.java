@@ -7,15 +7,12 @@ import com.finadem.validation.validationTypes.AcceptedCurrency;
 import com.finadem.validation.validationTypes.ValidIban;
 import com.finadem.validation.validationTypes.ValidTransactionSource;
 import com.finadem.validation.validationTypes.ValidTransactionType;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.NumberFormat;
 
 @Data
@@ -31,6 +28,7 @@ public class DepositWithdrawalRequest {
     @NotBlank(message = "Amount cannot be blank.")
     @Positive(message = "Amount must be a positive number.")
     @NumberFormat(style = NumberFormat.Style.CURRENCY)
+    @Pattern(regexp = "^(\\d+)(\\.\\d{1,2})?$", message = "Amount must be a valid number with up to two decimal places.")
     private String amount;
 
     @NotNull(message = "Currency cannot be null.")

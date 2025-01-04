@@ -12,19 +12,19 @@ Currently, there is no specific deployment feature configured for this project. 
 
 1. Clone the project from the repository:
 
-https://github.com/sujathak625/payment-app-prototype-demo
-
+**git clone https://github.com/sujathak625/payment-app-prototype-demo.git**
 
 2. Build the jar using Maven:
 
-mvn clean package
+**mvn clean package**
 
 - **Maven Version:** 3.9.9
 - **Java Version:** 21
+- **Spring:** 3.4.1
 
 3. Once the jar is built, you can run it using the following command:
 
-java -jar markant-demo-1.0.0.jar
+**java -jar markant-demo-1.0.0.jar**
 
 
 **Note:** The project uses an embedded Tomcat server, so no external Tomcat installation is required.

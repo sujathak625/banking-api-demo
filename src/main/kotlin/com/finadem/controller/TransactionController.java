@@ -32,6 +32,12 @@ public class TransactionController {
         this.dateHelper = dateHelper;
     }
 
+    /**
+     * Handles deposit transactions for a specified account.
+     *
+     * @param depositRequest the request payload containing deposit details such as IBAN, amount, and currency
+     * @return ResponseEntity indicating success (OK) of the deposit transaction
+     */
     @PostMapping("/deposit")
     public ResponseEntity<String> depositFund(@Valid @RequestBody DepositWithdrawalRequest depositRequest) {
         transactionService.createDepositTransaction(depositRequest.getIban(),
@@ -43,24 +49,52 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.OK).body("Deposit Successful.");
     }
 
+    /**
+     * Handles withdrawal transactions for a specified account.
+     *
+     * @param withdrawalRequest the request payload containing withdrawal details such as IBAN, amount, and currency
+     * @return ResponseEntity indicating success (OK) of the withdrawal transaction
+     */
     @PostMapping("/withdraw")
     public ResponseEntity<String> withdrawal(@Valid @RequestBody DepositWithdrawalRequest withdrawalRequest) {
         transactionService.createWithdrawalTransaction(withdrawalRequest);
         return ResponseEntity.status(HttpStatus.OK).body("Withdrawal successful.");
     }
 
+    /**
+     * Handles fund transfers between two accounts.
+     *
+     * @param fundTransferRequest the request payload containing fund transfer details such as sender/receiver IBANs,
+     *                            amount, and currency
+     * @return ResponseEntity indicating success (OK) of the fund transfer
+     */
     @PostMapping("/transfer")
     public ResponseEntity<String> transferFunds(@Valid @RequestBody FundTransferRequest fundTransferRequest) {
         transactionService.createFundTransferTransaction(fundTransferRequest);
         return ResponseEntity.status(HttpStatus.OK).body("Fund Transfer successful.");
     }
 
+    /**
+     * Retrieves the last N transactions for a given account.
+     *
+     * @param iban the unique identifier of the account
+     * @param n the number of recent transactions to fetch
+     * @return ResponseEntity containing a list of the last N transactions for the specified account
+     */
     @GetMapping("/history/{iban}/{n}")
     public ResponseEntity<List<Transaction>> getLastNTransactions(@PathVariable String iban, @PathVariable int n) {
         List<Transaction> transactionHistory = transactionService.getLastNTransactionHistory(iban, n);
         return ResponseEntity.status(HttpStatus.OK).body(transactionHistory);
     }
 
+    /**
+     * Retrieves transaction history for a given account between specified dates.
+     *
+     * @param iban the unique identifier of the account
+     * @param fromDate the start date of the transaction history in "dd-MM-yyyy" format
+     * @param toDate the end date of the transaction history in "dd-MM-yyyy" format
+     * @return ResponseEntity containing a list of transactions between the specified dates for the given account
+     */
     @GetMapping("/history/{iban}/{fromDate}/{toDate}")
     public ResponseEntity<List<Transaction>> getTransactionHistoryBetween(@PathVariable String iban, @PathVariable String fromDate, @PathVariable String toDate) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");

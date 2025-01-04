@@ -2,6 +2,7 @@ package com.finadem.service;
 
 import com.finadem.entity.Account;
 import com.finadem.exception.exceptions.AccountCreationFailedException;
+import com.finadem.exception.exceptions.AccountDataUpdateFailedException;
 import com.finadem.exception.exceptions.InvalidIbanException;
 import com.finadem.request.AccountDataRequest;
 import com.finadem.repository.AccountRepository;
@@ -39,7 +40,7 @@ class AccountServiceImpl implements AccountService {
         Account accountEntity = new Account();
         if (!isExists) {
             if (accountDataRequest.getCustomerId() == null) {
-                accountEntity.setCustomerId(generateUniqueCustomerId());
+                accountEntity.setCustomerId(accountHelper.generateCustomerId(9));
             } else {
                 accountEntity.setCustomerId(accountDataRequest.getCustomerId());
             }
@@ -81,9 +82,9 @@ class AccountServiceImpl implements AccountService {
             }
             account.setCurrentBalance(accountBalance);
             accountRepository.save(account);
-        } catch (Exception e) {
+        } catch (AccountDataUpdateFailedException e) {
             logger.error("Error while updating account balance for account number {}", accountNumber, e);
-            throw new AccountCreationFailedException("Error while updating account balance for account number: " + accountNumber);
+            throw new AccountDataUpdateFailedException("Error while updating account balance for account number: " + accountNumber);
         }
     }
 
@@ -102,13 +103,5 @@ class AccountServiceImpl implements AccountService {
             return null;
         }
         return accountDataRequest;
-    }
-
-    private Long generateUniqueCustomerId() {
-        long customerId;
-        do {
-            customerId = accountHelper.generateCustomerId(9);
-        } while (accountRepository.existsById(Math.toIntExact(customerId)));
-        return customerId;
     }
 }

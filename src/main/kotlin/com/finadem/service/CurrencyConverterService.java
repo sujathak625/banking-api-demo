@@ -7,8 +7,12 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.Map;
 
+public interface CurrencyConverterService{
+    BigDecimal getExchangeRate(String baseCurrency, String toCurrency);
+}
+
 @Service
-public class CurrencyConverterService {
+class CurrencyConverterServiceImpl implements CurrencyConverterService {
     @Value("${currency.api.key}")
     private String apiKey;
 
@@ -17,14 +21,14 @@ public class CurrencyConverterService {
 
     private final RestTemplate restTemplate;
 
-    public CurrencyConverterService(RestTemplate restTemplate) {
+    public CurrencyConverterServiceImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     public BigDecimal getExchangeRate(String baseCurrency, String toCurrency) {
         String finalUrl = String.format("%s?apikey=%s&base_currency=%s&currencies=%s", apiUrl, apiKey, baseCurrency, toCurrency);
 
-        Map response = restTemplate.getForObject(finalUrl, Map.class);
+        Map<String,Object> response = restTemplate.getForObject(finalUrl, Map.class);
 
         if (response == null || !response.containsKey("data")) {
             throw new IllegalArgumentException("Invalid response from currency API");
@@ -38,7 +42,4 @@ public class CurrencyConverterService {
             throw new IllegalArgumentException("Exchange rate is not a valid number");
         }
     }
-
 }
-
-

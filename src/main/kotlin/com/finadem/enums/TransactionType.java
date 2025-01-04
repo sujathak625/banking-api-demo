@@ -3,8 +3,8 @@ package com.finadem.enums;
 public enum TransactionType {
     DEPOSIT,
     WITHDRAWAL,
-    CREDIT_TRANSFER,
-    DEBIT_TRANSFER;
+    CREDIT,
+    DEBIT;
 
     public static boolean isValid(TransactionType transactionType) {
         for (TransactionType type : values()) {

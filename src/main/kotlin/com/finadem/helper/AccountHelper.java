@@ -56,6 +56,7 @@ public class AccountHelper {
         return ibanConfig.getBic();
     }
 
+    // For generating test IBANs this method call is done.
     public static void main(String[] args) {
         AccountHelper accountHelper = new AccountHelper(new IbanConfig());
         System.out.println(accountHelper.generateIBAN());

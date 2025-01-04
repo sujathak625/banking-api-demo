@@ -17,6 +17,13 @@ public class AccountController {
         this.accountService = accountService;
     }
 
+    /**
+     * Fetches the account balance for the specified account number.
+     *
+     * @param accountNumber the unique identifier of the account
+     * @return ResponseEntity containing account details (balance and currency) if the account exists,
+     *         otherwise returns a NOT_FOUND response.
+     */
     @GetMapping("/balance/{accountNumber}")
     public ResponseEntity<?> getAccountBalance(@PathVariable String accountNumber) {
         AccountDataRequest accountDataRequest = accountService.getAccountInformationByAccountNumber(accountNumber);
@@ -31,7 +38,7 @@ public class AccountController {
         }
     }
 
-    // Only for testing purpose to test account creation works
+    // Only for testing purpose to test whether account creation works
    @PostMapping("/createAccount")
     public ResponseEntity<String> createAccount(@RequestBody AccountDataRequest accountDataRequest) {
         String newAccountNumber = accountService.createNewAccount(accountDataRequest);

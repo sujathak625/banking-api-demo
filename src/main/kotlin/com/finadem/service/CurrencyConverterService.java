@@ -13,7 +13,7 @@ public interface CurrencyConverterService{
 
 @Service
 class CurrencyConverterServiceImpl implements CurrencyConverterService {
-    @Value("${currency.api.key}")
+    @Value("${currency.api.key_secured}")
     private String apiKey;
 
     @Value("${currency.api.url}")

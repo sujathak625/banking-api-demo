@@ -14,7 +14,17 @@ Following are used to implement this API
 
 ## How To Build and Run:
 
+Notes:
+**Environment Variable**:
+- The application requires an API key, which must be set as an environment variable named `CURRENCY_API_KEY_SECURED`.
+
+More information available in the later section.
+
+**Local Deployment**
+
 Currently, there is no specific deployment feature configured for this project. A simple **jar** build and running in a local environment is possible.
+
+**Steps**
 
 1. Clone the project from the repository:
 
@@ -26,7 +36,7 @@ Currently, there is no specific deployment feature configured for this project. 
 
 3. Once the jar is built, you can run it using the following command:
 
-**java -jar markant-demo-1.0.0.jar**
+**java -jar target/currency-converter-1.0.jar --currency.api.key_secured=your_api_key**
 
 **Note:** The project uses an embedded Tomcat server, so no external Tomcat installation is required.
 
@@ -54,22 +64,32 @@ Currently, there is no specific deployment feature configured for this project. 
 5. **JetBrains Annotations**: For code annotations.
 
 ### External API:
-- **FreeCurrencyAPI**: To retrieve exchange rates and convert currencies to Euros.
+- **FreeCurrencyAPI - https://freecurrencyapi.com/**: To retrieve exchange rates and convert currencies to Euros.
+
+The API Key is required to consume FreeCurrencyAPI which converts one currency to other. The API is used to convert
+any currency to EUR. Sample Use Case, if a Deposit or Fund Transfer request is done with USD, the currency is converted toEUR ans stored
+in database.
 
 ## Test Data:
 This data is pre-loaded during the start of the service for testing purposes.
 
-| **Field**              | **Value**                               |
-|------------------------|-----------------------------------------|
-| **ACCOUNT_HOLDER_NAME** | John Doe                               |
-| **BIC**                 | DEUTDEFF                                |
-| **CREATED_AT**          | 2025-01-02 11:38:12.495774             |
-| **CURRENCY**            | EUR                                     |
-| **CURRENT_BALANCE**    | 1500.00                                 |
-| **IBAN**                | DE89370400440532013000                  |
-| **STATUS**              | ACTIVE                                  |
-| **TAX_ID**              | TAX123456                               |
-| **UPDATED_AT**          | 2025-01-02 11:38:12.495781             |
+| **Field**              | **Value**                  |
+|------------------------|----------------------------|
+| **ACCOUNT_HOLDER_NAME** | Sujatha R                  |
+| **BIC**                 | DEUTDEFF                   |
+| **CREATED_AT**          | 2025-01-02 11:38:12.495774 |
+| **CURRENCY**            | EUR                        |
+| **CURRENT_BALANCE**    | 1500.00                    |
+| **IBAN**                | DE89370400440532013000     |
+| **STATUS**              | ACTIVE                     |
+| **TAX_ID**              | TAX123456                  |
+| **UPDATED_AT**          | 2025-01-02 11:38:12.495781 |
+
+To test the cases, valid IBAN which complies with the standard IBAN Format is required.
+
+Sample IBAN: HU02672380652554152557516756
+PS85IKXERHBWCCMNOG3UIY9YR6KCU
+IM62XGWE26288907157425
 
 ## Enums:
 The following enums are pre-configured to maintain consistency across transactions. This ensures that any consumer of this API will have to comply with the transaction status, transaction source, transaction type, and currency code, avoiding inconsistencies.
@@ -97,7 +117,7 @@ The following enums are pre-configured to maintain consistency across transactio
   {
     "iban": "DE89370400440532013000",
     "amount": "1200",
-    "currency": "EUR",
+    "currency": "USD",
     "transactionType": "DEPOSIT",
     "transactionRemarks": "Deposit to bank account",
     "transactionSource": "BANK_COUNTER"

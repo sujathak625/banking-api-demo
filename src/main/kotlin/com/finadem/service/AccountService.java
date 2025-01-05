@@ -93,17 +93,18 @@ class AccountServiceImpl implements AccountService {
 
     public AccountDataRequest getAccountInformationByAccountNumber(String accountNumber) {
         Account accountEntity = accountRepository.findAccountInformationByAccountNumber(accountNumber);
-        if (accountEntity == null) {
+        if (accountEntity != null) {
+            AccountDataRequest accountDataRequest = new AccountDataRequest();
+            accountDataRequest.setCustomerId(accountEntity.getCustomerId());
+            accountDataRequest.setAccountHolderName(accountEntity.getAccountHolderName());
+            accountDataRequest.setIban(accountEntity.getIban());
+            accountDataRequest.setCurrentBalance(accountEntity.getCurrentBalance());
+            accountDataRequest.setCurrency(accountEntity.getCurrency());
+            accountDataRequest.setTaxId(accountEntity.getTaxId());
+            accountDataRequest.setStatus(accountEntity.getStatus());
+            return accountDataRequest;
+        } else {
             return null;
         }
-        AccountDataRequest accountDataRequest = new AccountDataRequest();
-        accountDataRequest.setCustomerId(accountEntity.getCustomerId());
-        accountDataRequest.setAccountHolderName(accountEntity.getAccountHolderName());
-        accountDataRequest.setIban(accountEntity.getIban());
-        accountDataRequest.setCurrentBalance(accountEntity.getCurrentBalance());
-        accountDataRequest.setCurrency(accountEntity.getCurrency());
-        accountDataRequest.setTaxId(accountEntity.getTaxId());
-        accountDataRequest.setStatus(accountEntity.getStatus());
-        return accountDataRequest;
     }
 }

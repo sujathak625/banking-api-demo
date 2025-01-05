@@ -35,7 +35,8 @@ Currently, there is no specific deployment feature configured for this project. 
 
 3. Once the jar is built, you can run it using the following command:
 
-**java -jar target/currency-converter-1.0.jar --currency.api.key_secured=your_api_key**
+**java -jar target/banking-api-demo-1.0.0.jar --currency.api.key_secured=your api key                  
+**
 
 **Note:** The project uses an embedded Tomcat server, so no external Tomcat installation is required.
 

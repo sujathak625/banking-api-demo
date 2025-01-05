@@ -1,5 +1,4 @@
-**Demo Prototype for Simple Banking Application**
-
+**Demo Prototype for Simple Banking API**
 ## About API:
 
 The Banking API provides a comprehensive set of endpoints for managing accounts, transactions, and financial records. This API is designed to handle operations such as account creation, balance inquiries, fund transfers, deposits, withdrawals, and transaction history retrieval.
@@ -87,9 +86,13 @@ This data is pre-loaded during the start of the service for testing purposes.
 
 To test the cases, valid IBAN which complies with the standard IBAN Format is required.
 
-Sample IBAN: HU02672380652554152557516756
-PS85IKXERHBWCCMNOG3UIY9YR6KCU
-IM62XGWE26288907157425
+**Sample IBANs:** 
+- HU02672380652554152557516756
+- PS85IKXERHBWCCMNOG3UIY9YR6KCU
+- IM62XGWE26288907157425
+
+**Sample BIC:**
+- DEUTDEFF
 
 ## Enums:
 The following enums are pre-configured to maintain consistency across transactions. This ensures that any consumer of this API will have to comply with the transaction status, transaction source, transaction type, and currency code, avoiding inconsistencies.
@@ -99,6 +102,10 @@ The following enums are pre-configured to maintain consistency across transactio
 - **TransactionType:** `DEPOSIT`, `WITHDRAWAL`, `CREDIT`, `DEBIT`.
 - **TransactionSource:** `BANK_COUNTER`, `ATM`, `FUND_TRANSFER`.
 - **TransactionStatus:** `SUCCESS`, `FAILED`.
+
+### Accessing the database
+
+H2 Console : http://localhost:8080/h2-console
 
 ## Endpoints:
 

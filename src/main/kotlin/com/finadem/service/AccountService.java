@@ -10,6 +10,7 @@ import com.finadem.helper.AccountHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -34,6 +35,7 @@ class AccountServiceImpl implements AccountService {
         this.accountHelper = accountHelper;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public String createNewAccount(AccountDataRequest accountDataRequest) {
         String newAccountNumber;
         boolean isExists = accountRepository.findAccountInformationByAccountNumber(accountDataRequest.getIban()) != null;
@@ -73,6 +75,7 @@ class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateAccountBalance(String accountNumber, BigDecimal accountBalance) {
         try {
             com.finadem.entity.Account account = accountRepository.findAccountInformationByAccountNumber(accountNumber);
@@ -89,19 +92,18 @@ class AccountServiceImpl implements AccountService {
     }
 
     public AccountDataRequest getAccountInformationByAccountNumber(String accountNumber) {
-        com.finadem.entity.Account accountEntity = accountRepository.findAccountInformationByAccountNumber(accountNumber);
-        AccountDataRequest accountDataRequest = new AccountDataRequest();
-        if (accountEntity != null) {
-            accountDataRequest.setCustomerId(accountEntity.getCustomerId());
-            accountDataRequest.setAccountHolderName(accountEntity.getAccountHolderName());
-            accountDataRequest.setIban(accountEntity.getIban());
-            accountDataRequest.setCurrentBalance(accountEntity.getCurrentBalance());
-            accountDataRequest.setCurrency(accountEntity.getCurrency());
-            accountDataRequest.setTaxId(accountEntity.getTaxId());
-            accountDataRequest.setStatus(accountEntity.getStatus());
-        } else {
+        Account accountEntity = accountRepository.findAccountInformationByAccountNumber(accountNumber);
+        if (accountEntity == null) {
             return null;
         }
+        AccountDataRequest accountDataRequest = new AccountDataRequest();
+        accountDataRequest.setCustomerId(accountEntity.getCustomerId());
+        accountDataRequest.setAccountHolderName(accountEntity.getAccountHolderName());
+        accountDataRequest.setIban(accountEntity.getIban());
+        accountDataRequest.setCurrentBalance(accountEntity.getCurrentBalance());
+        accountDataRequest.setCurrency(accountEntity.getCurrency());
+        accountDataRequest.setTaxId(accountEntity.getTaxId());
+        accountDataRequest.setStatus(accountEntity.getStatus());
         return accountDataRequest;
     }
 }

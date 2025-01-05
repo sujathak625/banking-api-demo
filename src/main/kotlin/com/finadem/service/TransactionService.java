@@ -138,6 +138,7 @@ class TransactionServiceImpl implements TransactionService {
             transactionRepository.save(transactionEntity);
             accountService.updateAccountBalance(customerIban, prospectiveAccountBalance);
         } else {
+            logger.error("No account found for IBAN: " + withdrawalRequest.getIban());
             throw new IbanNotFoundException("Account with IBAN " + customerIban + " not found. To open a new account please contact the banking team.");
         }
     }

@@ -35,8 +35,7 @@ Currently, there is no specific deployment feature configured for this project. 
 
 3. Once the jar is built, you can run it using the following command:
 
-**java -jar target/banking-api-demo-1.0.0.jar --currency.api.key_secured=your api key                  
-**
+**java -jar target/banking-api-demo-1.0.0.jar --currency.api.key_secured=your api key**
 
 **Note:** The project uses an embedded Tomcat server, so no external Tomcat installation is required.
 
@@ -98,11 +97,14 @@ To test the cases, valid IBAN which complies with the standard IBAN Format is re
 ## Enums:
 The following enums are pre-configured to maintain consistency across transactions. This ensures that any consumer of this API will have to comply with the transaction status, transaction source, transaction type, and currency code, avoiding inconsistencies.
 
-- **AccountStatus:** An account can only be in one of these statuses - `ACTIVE`, `INACTIVE`,`SUSPENDED`,`FLAGGED`,`ACTIVE_KYC_NOT_COMPLETED` and `CLOSED`.
+Enum values to be given during Post requests
 - **CurrencyEnum:** As of now, only `EUR` and `USD` are accepted currencies for input request. If the transaction currency is other than EUR, the latest exchange rate will be retrieved and the amount will be converted to EUR. Even USD will be converted to EUR.
 - **TransactionType:** `DEPOSIT`, `WITHDRAWAL`, `CREDIT`, `DEBIT`.
 - **TransactionSource:** `BANK_COUNTER`, `ATM`, `FUND_TRANSFER`.
-- **TransactionStatus:** `SUCCESS`, `FAILED`.
+
+The below values are automatically set during query execution
+- **AccountStatus:** When creating a new account, status would be of these. This is automatically set during new account creation process and user input is not required - `ACTIVE`, `INACTIVE`,`SUSPENDED`,`FLAGGED`,`ACTIVE_KYC_NOT_COMPLETED` and `CLOSED`.
+- **TransactionStatus:** Updated when a transaction completes successfully. User input not required - `SUCCESS`, `FAILED`.
 
 ### Accessing the database
 
@@ -177,3 +179,4 @@ H2 Console : http://localhost:8080/h2-console
 6. **Get Transaction History (Date Range):** Retrieves the transaction history for a specified IBAN within a date range.
 - **GET** `http://localhost:8080/api/v1/transactions/history/{iban}/{fromDate}/{toDate}`
 - Example: `http://localhost:8080/api/v1/transactions/history/DE89370400440532013000/01-02-2024/30-01-2024`
+

@@ -27,7 +27,7 @@ Currently, there is no specific deployment feature configured for this project. 
 
 1. Clone the project from the repository:
 
-**git clone https://github.com/sujathak625/payment-app-prototype-demo.git**
+**git clone https://github.com/sujathak625/banking-api-demo.git**
 
 2. Build the jar using Maven:
 

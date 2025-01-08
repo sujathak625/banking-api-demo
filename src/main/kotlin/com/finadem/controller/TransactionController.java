@@ -3,14 +3,11 @@ package com.finadem.controller;
 import com.finadem.entity.Transaction;
 import com.finadem.request.DepositWithdrawalRequest;
 import com.finadem.request.FundTransferRequest;
-import com.finadem.enums.CurrencyEnum;
-import com.finadem.enums.TransactionType;
 import com.finadem.service.TransactionService;
 import com.finadem.helper.DateHelper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.NoTransactionException;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;

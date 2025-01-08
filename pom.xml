@@ -103,7 +103,7 @@
                 <version>3.5.2</version>
                 <configuration>
                     <environmentVariables>
-                        <currency.api.key_secured>fca_live_09gEQ26e4e53cfXTmQRj5jNeA2hlWmlpcTfdK4ED</currency.api.key_secured>
+                        <currency.api.key_secured></currency.api.key_secured>
                     </environmentVariables>
                 </configuration>
             </plugin>
